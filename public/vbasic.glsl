@@ -17,12 +17,47 @@ attribute float vParentScale;
 
 varying vec4 fColor;
 
-vec2 rotate(in vec2 position, in float angle) {
-  return mat2(cos(angle), sin(angle), -sin(angle), cos(angle)) * position;
+// vec2 rotate(in vec2 position, in float angle) {
+//   return mat2(cos(angle), sin(angle), -sin(angle), cos(angle)) * position;
+// }
+
+mat4 vecScaleMatrix(in float factor) {
+  return mat4(
+    factor, 0, 0, 0,
+    0, factor, 0, 0,
+    0, 0, 0, factor,
+    0, 0, 0, 0
+  );
+}
+
+mat4 vecRotationMatrix(in float angle) {
+  float c = cos(angle);
+  float s = sin(angle);
+  return mat4(
+    c, s, 0, 0,
+    -s, c, 0, 0,
+    0, 0, 1, 0,
+    0, 0, 0, 0
+  );
 }
 
 void main() {
-  vec2 position = vParentPosition + rotate(vPosition * vParentScale, vParentRotation);
-  gl_Position = vec4(position, 0., 1.);
+  // To representation
+  // Vec
+  vec4 position = vec4(vPosition, 0, 0);
+  // Point
+  vec4 parentPosition = vec4(vParentPosition, 0, 1);
+
+  // Scale
+  vec4 scaled = vecScaleMatrix(vParentScale) * position;
+
+  // Rotate
+  vec4 rotated = vecRotationMatrix(vParentRotation) * scaled;
+
+  // Translate
+  vec4 finalPosition = rotated + parentPosition;
+
+  // vec2 position = vParentPosition + rotate(vPosition * vParentScale, vParentRotation);
+  gl_Position = finalPosition;
   fColor = vec4(vColor, 1);
 }
